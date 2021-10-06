@@ -22,7 +22,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 @Configuration
-public class Demo1 {
+public class CsvFileToDatabase {
 
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
@@ -30,25 +30,25 @@ public class Demo1 {
     private final EmployeeDBWriter employeeDBWriter;
 
     @Autowired
-    public Demo1(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory,
-                 EmployeeProcessor employeeProcessor, EmployeeDBWriter employeeDBWriter) {
+    public CsvFileToDatabase(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory,
+                             EmployeeProcessor employeeProcessor, EmployeeDBWriter employeeDBWriter) {
         this.jobBuilderFactory = jobBuilderFactory;
         this.stepBuilderFactory = stepBuilderFactory;
         this.employeeProcessor = employeeProcessor;
         this.employeeDBWriter = employeeDBWriter;
     }
 
-    @Qualifier("demo1")
+    @Qualifier("csvFileToDatabase")
     @Bean
-    public Job demo1Job() {
-        return this.jobBuilderFactory.get("demo1")
-                .start(step1Demo())
+    public Job csvFileToDatabaseJob() {
+        return this.jobBuilderFactory.get("csvFileToDatabase")
+                .start(csvFileToDatabaseStep())
                 .build();
     }
 
     @Bean
-    public Step step1Demo() {
-        return this.stepBuilderFactory.get("step1")
+    public Step csvFileToDatabaseStep() {
+        return this.stepBuilderFactory.get("csvFileToDatabaseStep")
                 .<EmployeeDTO, Employee>chunk(5)
                 .reader(employeeReader())
                 .processor(employeeProcessor)

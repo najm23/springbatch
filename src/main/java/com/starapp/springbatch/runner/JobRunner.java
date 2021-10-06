@@ -21,12 +21,12 @@ public class JobRunner {
     public static final Logger logger = LoggerFactory.getLogger(JobRunner.class);
 
     private final JobLauncher simpleJobLauncher;
-    private final Job demo1;
+    private final Job csvFileToDatabaseJob;
 
     @Autowired
     public JobRunner(JobLauncher simpleJobLauncher, Job job) {
         this.simpleJobLauncher = simpleJobLauncher;
-        this.demo1 = job;
+        this.csvFileToDatabaseJob = job;
     }
 
     @Async
@@ -34,7 +34,7 @@ public class JobRunner {
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
         jobParametersBuilder.addString(Constants.FILE_NAME_CONTEXT_KEY, "employees.csv");
         jobParametersBuilder.addDate("date", new Date(), true);
-        runJob(demo1, jobParametersBuilder.toJobParameters());
+        runJob(csvFileToDatabaseJob, jobParametersBuilder.toJobParameters());
     }
 
     public void runJob(Job job, JobParameters jobParameters) {

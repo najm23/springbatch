@@ -19,6 +19,6 @@ public class JobController {
     @RequestMapping("/job")
     public String runJob() {
         jobRunner.runBatchJob();
-        return "Job demo1 submitted successfully.";
+        return "Job csvFileToDatabaseJob submitted successfully.";
     }
 }
