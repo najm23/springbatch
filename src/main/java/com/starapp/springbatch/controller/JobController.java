@@ -16,9 +16,15 @@ public class JobController {
         this.jobRunner = jobRunner;
     }
 
-    @RequestMapping("/job")
-    public String runJob() {
-        jobRunner.runBatchJob();
+    @RequestMapping("/csvToDbJob")
+    public String runCSVFileToDatabaseJob() {
+        jobRunner.runCSVFileToDatabaseBatchJob();
         return "Job csvFileToDatabaseJob submitted successfully.";
+    }
+
+    @RequestMapping("/dbToCsvJob")
+    public String runDatabaseToCSVFileJob() {
+        jobRunner.runDatabaseToCSVFileBatchJob();
+        return "Job databaseToCSVFileJob submitted successfully.";
     }
 }
