@@ -3,7 +3,7 @@ package com.starapp.springbatch.job;
 import com.starapp.springbatch.dto.EmployeeDTO;
 import com.starapp.springbatch.mapper.EmployeeFileRawMapper;
 import com.starapp.springbatch.model.Employee;
-import com.starapp.springbatch.processor.EmployeeProcessor;
+import com.starapp.springbatch.processor.EmployeeCSVtoDatabaseProcessor;
 import com.starapp.springbatch.writer.EmployeeDBWriter;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -26,12 +26,12 @@ public class CsvFileToDatabase {
 
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
-    private final EmployeeProcessor employeeProcessor;
+    private final EmployeeCSVtoDatabaseProcessor employeeProcessor;
     private final EmployeeDBWriter employeeDBWriter;
 
     @Autowired
     public CsvFileToDatabase(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory,
-                             EmployeeProcessor employeeProcessor, EmployeeDBWriter employeeDBWriter) {
+                             EmployeeCSVtoDatabaseProcessor employeeProcessor, EmployeeDBWriter employeeDBWriter) {
         this.jobBuilderFactory = jobBuilderFactory;
         this.stepBuilderFactory = stepBuilderFactory;
         this.employeeProcessor = employeeProcessor;

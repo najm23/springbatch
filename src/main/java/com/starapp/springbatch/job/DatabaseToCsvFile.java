@@ -3,7 +3,7 @@ package com.starapp.springbatch.job;
 import com.starapp.springbatch.dto.EmployeeDTO;
 import com.starapp.springbatch.mapper.EmployeeDbRawMapper;
 import com.starapp.springbatch.model.Employee;
-import com.starapp.springbatch.processor.EmployeeProcessor;
+import com.starapp.springbatch.processor.EmployeeDatabaseToCSVProcessor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -30,16 +30,15 @@ public class DatabaseToCsvFile {
 
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
-    private final EmployeeProcessor employeeProcessor;
+    private final EmployeeDatabaseToCSVProcessor employeeDatabaseToCSVProcessor;
     private final DataSource dataSource;
-    private final Resource outputResource = new FileSystemResource("output/employee_output.csv");
 
     @Autowired
     public DatabaseToCsvFile(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory,
-                             EmployeeProcessor employeeProcessor, DataSource dataSource) {
+                             EmployeeDatabaseToCSVProcessor employeeDatabaseToCSVProcessor, DataSource dataSource) {
         this.jobBuilderFactory = jobBuilderFactory;
         this.stepBuilderFactory = stepBuilderFactory;
-        this.employeeProcessor = employeeProcessor;
+        this.employeeDatabaseToCSVProcessor = employeeDatabaseToCSVProcessor;
         this.dataSource = dataSource;
     }
 
@@ -56,6 +55,7 @@ public class DatabaseToCsvFile {
         return this.stepBuilderFactory.get("databaseToCsvFileStep")
                 .<Employee, EmployeeDTO>chunk(10)
                 .reader(employeeDBReader())
+                .processor(employeeDatabaseToCSVProcessor)
                 .writer(employeeFileWriter())
                 .build();
     }
