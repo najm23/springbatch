@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
+import java.util.Random;
+
 @Component
 public class EmployeeCSVtoDatabaseProcessor implements ItemProcessor<EmployeeDTO, Employee> {
 
@@ -18,7 +20,7 @@ public class EmployeeCSVtoDatabaseProcessor implements ItemProcessor<EmployeeDTO
         if (!isValid(employeeDTO))
             return null;
         Employee employee = new Employee();
-        employee.setEmployeeId(employeeDTO.getEmployeeId());
+        employee.setEmployeeId(employeeDTO.getEmployeeId() + new Random().nextInt(1000000));
         employee.setFirstName(employeeDTO.getFirstName());
         employee.setLastName(employeeDTO.getLastName());
         employee.setEmail(employeeDTO.getEmail());

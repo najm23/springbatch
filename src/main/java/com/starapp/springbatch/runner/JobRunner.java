@@ -22,28 +22,34 @@ public class JobRunner {
 
     public static final Logger logger = LoggerFactory.getLogger(JobRunner.class);
 
-    private final Job databaseToCSVFileJob;
+
     @Value("${database.to.csv.job.export.file.path}")
     private String outputSourceFile;
 
-    private final JobLauncher simpleJobLauncher;
-    private final Job csvFileToDatabaseJob;
     @Value("${csv.to.database.job.source.file.path}")
     private String inputSourceFile;
+    private final Job databaseToCSVFileJob;
+    private final Job csvFileToDatabaseJob;
+    private final Job csvFileToDatabaseWithTaskExecutorJob;
+    private final JobLauncher simpleJobLauncher;
+    @Value("${csvData.to.database.job.source.file.path}")
+    private String inputDataSourceFile;
 
     @Autowired
     public JobRunner(JobLauncher simpleJobLauncher,
                      @Qualifier("csvFileToDatabase") Job csvFileToDatabaseJob,
-                     @Qualifier("databaseToCsvFile") Job databaseToCSVFileJob) {
+                     @Qualifier("databaseToCsvFile") Job databaseToCSVFileJob,
+                     @Qualifier("csvFileToDatabaseWithTaskExecutor") Job csvFileToDatabaseWithTaskExecutorJob) {
         this.simpleJobLauncher = simpleJobLauncher;
         this.csvFileToDatabaseJob = csvFileToDatabaseJob;
         this.databaseToCSVFileJob = databaseToCSVFileJob;
+        this.csvFileToDatabaseWithTaskExecutorJob = csvFileToDatabaseWithTaskExecutorJob;
     }
 
     @Async
     public void runCSVFileToDatabaseBatchJob() {
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
-        jobParametersBuilder.addString(Constants.FILE_NAME_CONTEXT_KEY, inputSourceFile);
+        jobParametersBuilder.addString(Constants.FILE_NAME_CONTEXT_KEY, inputDataSourceFile);
         jobParametersBuilder.addDate("date", new Date(), true);
         runCSVFileToDatabaseJob(csvFileToDatabaseJob, jobParametersBuilder.toJobParameters());
     }
@@ -75,6 +81,30 @@ public class JobRunner {
     public void runDatabaseToCSVFileJob(Job job, JobParameters jobParameters) {
         try {
             JobExecution jobExecution = simpleJobLauncher.run(job, jobParameters);
+        } catch (JobExecutionAlreadyRunningException e) {
+            logger.info("Job with fileName={} is already running.", jobParameters.getParameters().get(Constants.FILE_NAME_CONTEXT_KEY));
+        } catch (JobStartException e) {
+            logger.info("Job with fileName={} was not started.", jobParameters.getParameters().get(Constants.FILE_NAME_CONTEXT_KEY));
+        } catch (JobInstanceAlreadyCompleteException e) {
+            logger.info("Job with fileName={} is already completed.", jobParameters.getParameters().get(Constants.FILE_NAME_CONTEXT_KEY));
+        } catch (JobParametersInvalidException e) {
+            logger.info("Invalid parameters for job with fileName={} .", jobParameters.getParameters().get(Constants.FILE_NAME_CONTEXT_KEY));
+        } catch (JobRestartException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Async
+    public void runCsvFileToDatabaseWithTaskExecutorBatchJob() {
+        JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
+        jobParametersBuilder.addString(Constants.FILE_NAME_CONTEXT_KEY, inputDataSourceFile);
+        jobParametersBuilder.addDate("date", new Date(), true);
+        runCsvFileToDatabaseWithTaskExecutorJob(csvFileToDatabaseWithTaskExecutorJob, jobParametersBuilder.toJobParameters());
+    }
+
+    public void runCsvFileToDatabaseWithTaskExecutorJob(Job job, JobParameters jobParameters) {
+        try {
+            simpleJobLauncher.run(job, jobParameters);
         } catch (JobExecutionAlreadyRunningException e) {
             logger.info("Job with fileName={} is already running.", jobParameters.getParameters().get(Constants.FILE_NAME_CONTEXT_KEY));
         } catch (JobStartException e) {
