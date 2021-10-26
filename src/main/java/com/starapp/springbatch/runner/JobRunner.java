@@ -3,7 +3,10 @@ package com.starapp.springbatch.runner;
 import com.starapp.springbatch.utils.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.*;
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
@@ -31,6 +34,7 @@ public class JobRunner {
     private final Job databaseToCSVFileJob;
     private final Job csvFileToDatabaseJob;
     private final Job csvFileToDatabaseWithTaskExecutorJob;
+    private final Job csvFileToDatabaseMultiStepsJob;
     private final JobLauncher simpleJobLauncher;
     @Value("${csvData.to.database.job.source.file.path}")
     private String inputDataSourceFile;
@@ -39,11 +43,13 @@ public class JobRunner {
     public JobRunner(JobLauncher simpleJobLauncher,
                      @Qualifier("csvFileToDatabase") Job csvFileToDatabaseJob,
                      @Qualifier("databaseToCsvFile") Job databaseToCSVFileJob,
-                     @Qualifier("csvFileToDatabaseWithTaskExecutor") Job csvFileToDatabaseWithTaskExecutorJob) {
+                     @Qualifier("csvFileToDatabaseWithTaskExecutor") Job csvFileToDatabaseWithTaskExecutorJob,
+                     @Qualifier("csvFileToDatabaseMultiSteps") Job csvFileToDatabaseMultiStepsJob) {
         this.simpleJobLauncher = simpleJobLauncher;
         this.csvFileToDatabaseJob = csvFileToDatabaseJob;
         this.databaseToCSVFileJob = databaseToCSVFileJob;
         this.csvFileToDatabaseWithTaskExecutorJob = csvFileToDatabaseWithTaskExecutorJob;
+        this.csvFileToDatabaseMultiStepsJob = csvFileToDatabaseMultiStepsJob;
     }
 
     @Async
@@ -51,23 +57,7 @@ public class JobRunner {
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
         jobParametersBuilder.addString(Constants.FILE_NAME_CONTEXT_KEY, inputDataSourceFile);
         jobParametersBuilder.addDate("date", new Date(), true);
-        runCSVFileToDatabaseJob(csvFileToDatabaseJob, jobParametersBuilder.toJobParameters());
-    }
-
-    public void runCSVFileToDatabaseJob(Job job, JobParameters jobParameters) {
-        try {
-            JobExecution jobExecution = simpleJobLauncher.run(job, jobParameters);
-        } catch (JobExecutionAlreadyRunningException e) {
-            logger.info("Job with fileName={} is already running.", jobParameters.getParameters().get(Constants.FILE_NAME_CONTEXT_KEY));
-        } catch (JobStartException e) {
-            logger.info("Job with fileName={} was not started.", jobParameters.getParameters().get(Constants.FILE_NAME_CONTEXT_KEY));
-        } catch (JobInstanceAlreadyCompleteException e) {
-            logger.info("Job with fileName={} is already completed.", jobParameters.getParameters().get(Constants.FILE_NAME_CONTEXT_KEY));
-        } catch (JobParametersInvalidException e) {
-            logger.info("Invalid parameters for job with fileName={} .", jobParameters.getParameters().get(Constants.FILE_NAME_CONTEXT_KEY));
-        } catch (JobRestartException e) {
-            e.printStackTrace();
-        }
+        runJob(csvFileToDatabaseJob, jobParametersBuilder.toJobParameters());
     }
 
     @Async
@@ -75,23 +65,7 @@ public class JobRunner {
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
         jobParametersBuilder.addString(Constants.OUTPUT_FILE_NAME_CONTEXT_KEY, outputSourceFile);
         jobParametersBuilder.addDate("date", new Date(), true);
-        runDatabaseToCSVFileJob(databaseToCSVFileJob, jobParametersBuilder.toJobParameters());
-    }
-
-    public void runDatabaseToCSVFileJob(Job job, JobParameters jobParameters) {
-        try {
-            JobExecution jobExecution = simpleJobLauncher.run(job, jobParameters);
-        } catch (JobExecutionAlreadyRunningException e) {
-            logger.info("Job with fileName={} is already running.", jobParameters.getParameters().get(Constants.FILE_NAME_CONTEXT_KEY));
-        } catch (JobStartException e) {
-            logger.info("Job with fileName={} was not started.", jobParameters.getParameters().get(Constants.FILE_NAME_CONTEXT_KEY));
-        } catch (JobInstanceAlreadyCompleteException e) {
-            logger.info("Job with fileName={} is already completed.", jobParameters.getParameters().get(Constants.FILE_NAME_CONTEXT_KEY));
-        } catch (JobParametersInvalidException e) {
-            logger.info("Invalid parameters for job with fileName={} .", jobParameters.getParameters().get(Constants.FILE_NAME_CONTEXT_KEY));
-        } catch (JobRestartException e) {
-            e.printStackTrace();
-        }
+        runJob(databaseToCSVFileJob, jobParametersBuilder.toJobParameters());
     }
 
     @Async
@@ -99,10 +73,19 @@ public class JobRunner {
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
         jobParametersBuilder.addString(Constants.FILE_NAME_CONTEXT_KEY, inputDataSourceFile);
         jobParametersBuilder.addDate("date", new Date(), true);
-        runCsvFileToDatabaseWithTaskExecutorJob(csvFileToDatabaseWithTaskExecutorJob, jobParametersBuilder.toJobParameters());
+        runJob(csvFileToDatabaseWithTaskExecutorJob, jobParametersBuilder.toJobParameters());
     }
 
-    public void runCsvFileToDatabaseWithTaskExecutorJob(Job job, JobParameters jobParameters) {
+    @Async
+    public void runCSVFileToDatabaseMultiStepsJob() {
+        JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
+        jobParametersBuilder.addString(Constants.FILE_NAME_CONTEXT_KEY, inputDataSourceFile);
+        jobParametersBuilder.addString(Constants.OUTPUT_FILE_NAME_CONTEXT_KEY, outputSourceFile);
+        jobParametersBuilder.addDate("date", new Date(), true);
+        runJob(csvFileToDatabaseMultiStepsJob, jobParametersBuilder.toJobParameters());
+    }
+
+    public void runJob(Job job, JobParameters jobParameters) {
         try {
             simpleJobLauncher.run(job, jobParameters);
         } catch (JobExecutionAlreadyRunningException e) {

@@ -53,7 +53,7 @@ public class CsvFileToDatabaseWithTaskExecutor {
     @Bean
     public Job csvFileToDatabaseWithTaskExecutorJob() {
         return this.jobBuilderFactory.get("csvFileToDatabaseWithTaskExecutor")
-                .start(CsvFileToDatabaseWithTaskExecutorStep())
+                .start(csvFileToDatabaseWithTaskExecutorStep())
                 .listener(new JobExecutionListener() {
                     @Override
                     public void beforeJob(JobExecution jobExecution) {
@@ -76,7 +76,7 @@ public class CsvFileToDatabaseWithTaskExecutor {
     }
 
     @Bean
-    public Step CsvFileToDatabaseWithTaskExecutorStep() {
+    public Step csvFileToDatabaseWithTaskExecutorStep() {
         return this.stepBuilderFactory.get("CsvFileToDatabaseWithTaskExecutorStep")
                 .<EmployeeDTO, Employee>chunk(10)
                 .reader(employeeDataReader())

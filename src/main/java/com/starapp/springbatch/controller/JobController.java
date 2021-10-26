@@ -33,4 +33,10 @@ public class JobController {
         jobRunner.runCsvFileToDatabaseWithTaskExecutorBatchJob();
         return "Job csvFileToDatabaseWithTaskExecutorJob submitted successfully.";
     }
+
+    @RequestMapping("/csvToDbMultiStepsJob")
+    public String runCSVFileToDatabaseMultiStepsJob() {
+        jobRunner.runCSVFileToDatabaseMultiStepsJob();
+        return "Job runCSVFileToDatabaseMultiStepsJob submitted successfully.";
+    }
 }
